@@ -55,10 +55,10 @@ public class state {
                 switch (option) {
                     case 1:
                         System.out.print("Balance: ");
-                        System.out.println(Main.data.get(1));
+                        System.out.println(Main.balance);
                         break;
                     case 2:
-                        Main.data.clear(); // remove the cache
+                        Main.balance = 0; // remove the cache
                         currentState = State.SHOW_MENU;
                         System.out.println("You have successfully logged out!");
                         break;
