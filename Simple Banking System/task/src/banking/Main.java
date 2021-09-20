@@ -1,12 +1,12 @@
 package banking;
 
+
 import java.sql.*;
 import java.util.*;
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
-    // balance for current user
-    public static int balance;
+    public static String accountCard; // card's number of current opened account.
     public static String dbName; // Database location.
 
     public static void main(String[] args) {
@@ -151,9 +151,8 @@ public class Main {
                 String pinFromUser = String.valueOf(pin);
                 String cardFromdata = rs.getString("number");
                 String pinFromData = rs.getString("pin");
-                int balance = rs.getInt("balance");
-                // getting the balance out of the try catch block.
-                getBalance(balance);
+                // getting the card number out of the try catch block.
+                getCardNum(cardFromdata);
                 if (cardFromdata.equals(card) && pinFromData.equals(pinFromUser)) {
                     System.out.println("You have successfully logged in!");
                     state.currentState = state.State.LOGGED_IN;
@@ -172,8 +171,176 @@ public class Main {
 
     }
 
-    public static void getBalance(int bal) {
-        balance = bal;
+    // getting some info out of try-catch block.
+    public static void getCardNum(String num) {
+        accountCard = num;
+    }
+
+    public static void addIncome() {
+
+        System.out.println("Enter income:");
+        int income = scanner.nextInt();
+        scanner.nextLine(); //tag 1
+
+        String sql = "UPDATE card SET balance = balance + ? WHERE number = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the value
+            pstmt.setInt(1, income);
+            pstmt.setString(2, accountCard);
+            //
+            pstmt.executeUpdate();
+
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("Income was added!");
+
+    }
+
+    public static int getBalance() {
+        String sql = "SELECT balance FROM card WHERE number = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the value
+            pstmt.setString(1, accountCard);
+
+            ResultSet set = pstmt.executeQuery();
+
+            if (set.next()) {
+                return set.getInt("balance");
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return -1;
+
+    }
+
+    public static void transferBalance() {
+        System.out.println("Transfer");
+        System.out.println("Enter card number:");
+
+        String cardNum = scanner.nextLine();
+        if (cardNum.equals(accountCard)) {
+            System.out.println("You can't transfer money to the same account!");
+
+        } else if (lunhAlgo(cardNum.substring(0, 15)) != Character.getNumericValue(cardNum.charAt(15))) {
+            System.out.println("Probably you made a mistake in the card number. Please try again!");
+
+        } else if (checkIfExist(cardNum)) {
+            System.out.println("Enter how much money you want to transfer:");
+            int amount = scanner.nextInt();
+            scanner.nextLine(); //tage 1
+            if (amount > getBalance()) {
+                System.out.println("Not enough money!");
+            } else {
+                transferMechanism(accountCard, cardNum, amount);
+
+            }
+
+        } else {
+            System.out.println("Such a card does not exist.");
+        }
+
+
+    }
+
+    public static boolean checkIfExist(String cardNum) {
+
+        String sql = "SELECT number FROM card WHERE number = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the value
+            pstmt.setString(1, cardNum);
+
+            ResultSet set = pstmt.executeQuery();
+
+            if (set.next()) {
+                return set.getString("number").equals(cardNum);
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return false;
+
+    }
+
+
+    public static void transferMechanism(String sender_account, String receiver_account, int amount) {
+        //withdraw from sender
+        String sql1 = "Update card SET balance = balance - ? WHERE number = ?";
+        // adding money to the receiver's account
+        String sql2 = "Update card SET balance = balance + ? WHERE number = ?";
+
+
+        try (Connection conn = DriverManager.getConnection(dbName)) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement withdraw = conn.prepareStatement(sql1);
+                 PreparedStatement add = conn.prepareStatement(sql2)) {
+
+                // Create a savepoint
+                //Savepoint savepoint = conn.setSavepoint();
+
+
+                // withdrawing process
+                withdraw.setInt(1, amount);
+                withdraw.setString(2, sender_account);
+                withdraw.executeUpdate();
+
+                // adding process
+                add.setInt(1, amount);
+                add.setString(2, receiver_account);
+                add.executeUpdate();
+
+                conn.commit();
+
+
+            } catch (SQLException e) {
+                conn.rollback();
+                System.out.println(e.getMessage());
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Success!");
+
+
+    }
+
+    public static void close_account() {
+
+        String sql = "DELETE FROM card WHERE number = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the value
+            pstmt.setString(1, accountCard);
+            //close it
+            pstmt.executeUpdate();
+
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("The account has been closed!");
+
+
     }
 
 

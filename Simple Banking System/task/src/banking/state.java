@@ -49,16 +49,28 @@ public class state {
                 Main.login();
                 break;
             case LOGGED_IN:
-                System.out.println("1. Balance\n2. Log out\n0. Exit");
+                System.out.println("1. Balance\n2. Add income\n3. Do transfer\n4. Close account\n5. Log out\n0. Exit");
                 int option = scanner.nextInt();
                 scanner.nextLine();
                 switch (option) {
                     case 1:
                         System.out.print("Balance: ");
-                        System.out.println(Main.balance);
+                        int bal = Main.getBalance();
+                        System.out.println(bal);
                         break;
                     case 2:
-                        Main.balance = 0; // remove the cache
+                        Main.addIncome();
+                        break;
+                    case 3:
+                        Main.transferBalance();
+                        break;
+                    case 4:
+                        Main.close_account();
+                        currentState = State.SHOW_MENU;
+                        break;
+                    case 5:
+                        // remove the cache
+                        Main.accountCard = null;
                         currentState = State.SHOW_MENU;
                         System.out.println("You have successfully logged out!");
                         break;
