@@ -180,7 +180,7 @@ public class Main {
 
         System.out.println("Enter income:");
         int income = scanner.nextInt();
-        scanner.nextLine(); //tag 1
+        scanner.nextLine(); 
 
         String sql = "UPDATE card SET balance = balance + ? WHERE number = ?";
 
@@ -238,7 +238,7 @@ public class Main {
         } else if (checkIfExist(cardNum)) {
             System.out.println("Enter how much money you want to transfer:");
             int amount = scanner.nextInt();
-            scanner.nextLine(); //tage 1
+            scanner.nextLine();
             if (amount > getBalance()) {
                 System.out.println("Not enough money!");
             } else {
