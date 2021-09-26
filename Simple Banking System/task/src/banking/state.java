@@ -55,17 +55,17 @@ public class state {
                 switch (option) {
                     case 1:
                         System.out.print("Balance: ");
-                        int bal = Main.getBalance();
+                        int bal = sqlFunctionalities.getBalance();
                         System.out.println(bal);
                         break;
                     case 2:
-                        Main.addIncome();
+                        sqlFunctionalities.addIncome();
                         break;
                     case 3:
-                        Main.transferBalance();
+                        sqlFunctionalities.transferBalance();
                         break;
                     case 4:
-                        Main.close_account();
+                        sqlFunctionalities.close_account();
                         currentState = State.SHOW_MENU;
                         break;
                     case 5:
